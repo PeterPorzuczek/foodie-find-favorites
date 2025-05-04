@@ -1,8 +1,11 @@
+
 # Welcome to your Lovable project
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/ca62a53a-da89-4ed2-a13e-f209da7b6c10
+
+![Recipe Search App Preview](https://i.imgur.com/IAEfMrS.png)
 
 ## How can I edit this code?
 
