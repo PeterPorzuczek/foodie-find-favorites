@@ -1,5 +1,5 @@
 
-import { useState, useRef, KeyboardEvent } from 'react';
+import { useState, useRef, KeyboardEvent, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,13 @@ const SearchBar = ({ onSearch, placeholder = "Search recipes..." }: SearchBarPro
       handleSearch();
     }
   };
+
+  // Reset focus when placeholder changes (indicating a mode change)
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [placeholder]);
 
   return (
     <div className="relative flex w-full max-w-3xl">

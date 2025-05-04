@@ -40,6 +40,9 @@ const Index = () => {
   const [favorites, setFavorites] = useState<Recipe[]>([]);
   const [favoritesMap, setFavoritesMap] = useState<Record<number, Recipe>>({});
   
+  // View State
+  const [activeView, setActiveView] = useState<'search' | 'favorites'>('search');
+  
   // Initialize favorites from localStorage
   useEffect(() => {
     const savedFavorites = localStorage.getItem('recipe-favorites');
@@ -69,6 +72,7 @@ const Index = () => {
     if (!apiKey || !query.trim()) return;
     
     setSearchQuery(query);
+    setActiveView('search');
     
     try {
       if (searchMode === 'ingredient') {
@@ -232,27 +236,66 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Results Section */}
+      {/* Results & Favorites Section */}
       <section className="py-12">
         <div className="container mx-auto px-4">
-          {searchQuery && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-semibold mb-6">
-                {searchMode === 'recipe' ? 'Recipe Results' : 'Ingredient Results'}: 
-                <span className="font-normal text-gray-600 ml-2">"{searchQuery}"</span>
-              </h2>
-              <Separator />
-            </div>
+          {(apiKey && (searchQuery || favorites.length > 0)) && (
+            <Tabs 
+              defaultValue={activeView} 
+              value={activeView}
+              onValueChange={(v) => setActiveView(v as 'search' | 'favorites')}
+              className="mb-8"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">
+                  {activeView === 'search' && searchQuery ? 
+                    `${searchMode === 'recipe' ? 'Recipe' : 'Ingredient'} Results: "${searchQuery}"` : 
+                    'My Favorite Recipes'}
+                </h2>
+                <TabsList>
+                  <TabsTrigger value="search" disabled={!searchQuery}>Search Results</TabsTrigger>
+                  <TabsTrigger value="favorites" disabled={favorites.length === 0}>
+                    Favorites ({favorites.length})
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <Separator className="mb-8" />
+              
+              <TabsContent value="search">
+                <RecipeList 
+                  recipes={recipes} 
+                  favorites={Object.keys(favoritesMap).map(Number)}
+                  isLoading={isLoading} 
+                  error={error} 
+                  onFavoriteToggle={handleFavoriteToggle}
+                  onRecipeSelect={handleRecipeSelect}
+                />
+              </TabsContent>
+              
+              <TabsContent value="favorites">
+                {favorites.length > 0 ? (
+                  <RecipeList 
+                    recipes={favorites}
+                    favorites={Object.keys(favoritesMap).map(Number)}
+                    isLoading={false}
+                    error={null}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    onRecipeSelect={handleRecipeSelect}
+                  />
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No favorite recipes yet. Start by saving some recipes!</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
           
-          <RecipeList 
-            recipes={recipes} 
-            favorites={Object.keys(favoritesMap).map(Number)}
-            isLoading={isLoading} 
-            error={error} 
-            onFavoriteToggle={handleFavoriteToggle}
-            onRecipeSelect={handleRecipeSelect}
-          />
+          {(!apiKey || (!searchQuery && favorites.length === 0)) && (
+            <div className="text-center py-12 text-gray-500">
+              {apiKey ? 'Search for recipes to get started!' : 'Add your API key to start exploring recipes.'}
+            </div>
+          )}
           
           {selectedRecipe && (
             <RecipeDetail 
